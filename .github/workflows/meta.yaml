@@ -1,0 +1,50 @@
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-commits:
+    name: Check commits using conform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v25
+      - uses: cachix/cachix-action@v14
+        with:
+          name: wucke13
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Checking each commit to be merged for conformance
+        run: nix run .#check-commits -- nix run nixpkgs#conform enforce
+  check-workflow-packages:
+    name: Check workflow derivation coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v25
+      - uses: cachix/cachix-action@v14
+        with:
+          name: wucke13
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Checking each commit to have its derivations covered by CI
+        run: nix run .#check-commits -- nix run .#update-ci -- --check
+  check-fmt:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v25
+      - uses: cachix/cachix-action@v14
+        with:
+          name: wucke13
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Checking each commit to be properly formatted
+        run: nix run .#check-commits -- nix fmt -- --ci
