@@ -38,7 +38,7 @@ jobs:
         name: Skip unsupported builds
         run: nix eval --json .#packages.${{ matrix.system }}.${{ matrix.pkg }}.meta.available
       - if: steps.supported-system.conclusion == 'success'
-        run: nix build ${EXTRA_NIX_FLAGS[@]} .#packages.${{ matrix.system }}.${{ matrix.pkg }}
+        run: nix build $EXTRA_NIX_FLAGS .#packages.${{ matrix.system }}.${{ matrix.pkg }}
 
   build-nixos-config:
     name: NixOS on ${{ matrix.config }}
@@ -57,4 +57,4 @@ jobs:
         with:
           name: wucke13
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - run: nix build ${EXTRA_NIX_FLAGS[@]} .#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel
+      - run: nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel

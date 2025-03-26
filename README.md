@@ -5,6 +5,11 @@
 		nix build .\#nixosConfigurations.minimal.config.boot.kernelPackages.kernel
 		```
 
+- Build the kernel config file
+	- ```bash
+		nix build .\#nixosConfigurations.minimal.config.boot.kernelPackages.kernel.configfile
+		```
+
 - Build the initrd
 	- ```bash
 		nix build .\#nixosConfigurations.minimal.config.system.build.netbootRamdisk
