@@ -407,6 +407,10 @@
     system.build.run-with-qemu = pkgs.writeShellApplication {
       name = "run-in-qemu";
       text = ''
+        # QEMU leaves the terminal in an unclean state upon exit.
+        # See https://github.com/cirosantilli/linux-kernel-module-cheat/issues/110
+        trap 'tput smam' EXIT
+
         ${pkgs.qemu-common.qemuBinary pkgs.qemuForThisConfig} \
           -m size=1G \
           -kernel ${config.system.build.toplevel}/kernel \
