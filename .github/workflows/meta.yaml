@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
 on:
   pull_request:
     branches: [main]
@@ -11,11 +15,8 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
-        with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Checking each commit to be merged for conformance
         run: nix run .#check-commits -- nix run nixpkgs#conform enforce
   check-workflow-packages:
@@ -26,11 +27,8 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
-        with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Checking each commit to have its derivations covered by CI
         run: nix run .#check-commits -- nix run .#update-ci -- --check
   check-fmt:
@@ -41,10 +39,21 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
-        with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Checking each commit to be properly formatted
         run: nix run .#check-commits -- nix fmt -- --ci
+  check-licenses:
+    name: Check licenses using reuse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Checking each commit to be merged for proper declaration of licenses
+        run: >
+          nix shell .#check-commits nixpkgs#reuse --command
+          reuse lint
