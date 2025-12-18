@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024-2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
 final: prev:
 let
   inherit (prev) lib;

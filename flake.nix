@@ -1,8 +1,10 @@
+# SPDX-FileCopyrightText: 2024-2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -19,6 +21,8 @@
       lib = import ./lib.nix nixpkgs.lib;
     in
     {
+      homeConfigurations = { };
+      nixosModules.default = import ./nixos-modules;
       overlays.default = import ./overlay.nix;
 
       # NixOS Configurations
@@ -65,7 +69,7 @@
               runtimeInputs = [
                 pkgs.coreutils-full
                 pkgs.git
-                pkgs.nixStable
+                pkgs.nixVersions.stable
               ];
               text = ''
                 nix flake update --commit-lock-file

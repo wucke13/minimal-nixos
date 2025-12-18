@@ -1,24 +1,54 @@
+# SPDX-FileCopyrightText: 2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
 {
   writeShellApplication,
-  conform,
   git,
   util-linux,
 }:
 
-writeShellApplication {
-  name = "check-commmits-conform";
+writeShellApplication rec {
+  name = "check-commits";
   runtimeInputs = [
-    conform
     git
     util-linux
   ];
 
   text = ''
+    #
+    ## Arguments, variables, clean-up & restore code
+    #
     BASE_BRANCH="''${BASE_BRANCH:-origin/main}"
     CHECK_COMMAND=( "$@" )
 
+    # command to restore the repo to the state before running this command
+    restore(){
+      echo -e "\nrestoring repo to state before running this command"
+
+      # restore the head to before running this script
+      if [ -n "''${GIT_CURRENT_HASH-}" ]
+      then
+        git switch --detach --quiet -- "$GIT_CURRENT_HASH"
+      elif [ -n "''${GIT_CURRENT_BRANCH-}" ]
+      then
+        git switch --quiet -- "$GIT_CURRENT_BRANCH"
+      fi
+
+      # and restore all the uncommitted files
+      if [ "''${RESTORE_STASH:-false}" = true ]
+      then
+        git stash pop --quiet
+      fi
+    }
+
+
+    #
+    ### Capture the current state
+    #
+
     # get current branch
-    if GIT_CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+    if GIT_CURRENT_BRANCH=$(git symbolic-ref --quiet --short HEAD)
     then :
     # or if in detached mode, current hash
     elif GIT_CURRENT_HASH="$(git rev-parse HEAD)"
@@ -29,13 +59,26 @@ writeShellApplication {
       exit 1
     fi
 
+    # register the restore handler
+    trap restore EXIT
+
+
+    #
+    ### Stash away local, uncommitted changes
+    #
+
     # stash away all uncommitted things, if any
     if [ -n "$(git ls-files --deleted --modified --others --unmerged --killed --exclude-standard \
       --directory --no-empty-directory)" ]
     then
-      git stash push --all --message="check-commits-conform-$(date --iso-8601)-$(uuidgen)"
+      git stash push --all --message="${name}-$(date --iso-8601)-$(uuidgen)"
       RESTORE_STASH=true
     fi
+
+
+    #
+    ### Do the work, per each commit since $BASE_BRANCH
+    #
 
     # do the actual per-commit checking
     FAILURES=0
@@ -58,25 +101,15 @@ writeShellApplication {
       git clean --force --quiet -- .
     done
 
-    # restore the head to before running this script
-    if [ -n "''${GIT_CURRENT_HASH-}" ]
-    then
-      git switch --detach --quiet -- "$GIT_CURRENT_HASH"
-    elif [ -n "''${GIT_CURRENT_BRANCH-}" ]
-    then
-      git switch --quiet -- "$GIT_CURRENT_BRANCH"
-    fi
 
-    # and restore all the uncommitted files
-    if [ "''${RESTORE_STASH:-false}" = true ]
-    then
-      git stash pop --quiet
-    fi
+    #
+    ### Report findings
+    #
 
     # finally, report on the number of failures
     if [[ "$FAILURES" -gt 0 ]]
     then
-      echo "Encountered $FAILURES non-conforming commits"
+      echo "Encountered $FAILURES commits failing the check \`''${CHECK_COMMAND[*]}\`"
       exit 1
     fi
   '';

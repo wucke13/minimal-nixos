@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
 on: [push]
 
 env:
@@ -8,53 +12,59 @@ jobs:
     name: Nix flake check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
-        with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: actions/checkout@v6
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix flake check
-  build-pkg:
-    name: ${{ matrix.pkg }} for ${{ matrix.system }}
+  build-package:
+    name: ${{ matrix.PACKAGE }} for ${{ matrix.SYSTEM }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        system:
+        SYSTEM:
           # TODO make this work well
           # - "aarch64-linux"
           - x86_64-linux
-        pkg:
+        # Generated using
+        # nix run .#update-ci
+        PACKAGE:
           - check-commits
+          - minimal-linux-kernel
           - update-ci
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
-        with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: actions/checkout@v6
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - id: supported-system
         name: Skip unsupported builds
-        run: nix eval --json .#packages.${{ matrix.system }}.${{ matrix.pkg }}.meta.available
+        run: eval nix eval --json .#packages.${{ matrix.SYSTEM }}.${{
+          matrix.PACKAGE }}.meta.available
       - if: steps.supported-system.conclusion == 'success'
-        run: nix build $EXTRA_NIX_FLAGS .#packages.${{ matrix.system }}.${{ matrix.pkg }}
+        run: |
+          # shellcheck disable=SC2086
+          nix build $EXTRA_NIX_FLAGS .#packages.${{ matrix.SYSTEM }}.${{ matrix.PACKAGE }}
 
-  build-nixos-config:
-    name: NixOS on ${{ matrix.config }}
+  build-nixosConfiguration:
+    name: NixOS on ${{ matrix.NIXOS_CONFIGURATION }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # Generated using
-        # nix eval --json --apply builtins.attrNames .\#nixosConfigurations
-        config:
+        # nix run .#update-ci
+        NIXOS_CONFIGURATION:
           - minimal
           - minimal-cross-x86_64-aarch64
+          - minimal-cross-x86_64-armv7l
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v25
-      - uses: cachix/cachix-action@v14
+      # The default image contains dozens of gigabytes of tools. NixOS config builds get big. Thus,
+      # remove unused tools (Nix provides for all we need!) to get some space.
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
         with:
-          name: wucke13
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - run: nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel
+          tool-cache: true
+      - uses: actions/checkout@v6
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: |
+          # shellcheck disable=SC2086
+          nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.NIXOS_CONFIGURATION }}.config.system.build.toplevel
