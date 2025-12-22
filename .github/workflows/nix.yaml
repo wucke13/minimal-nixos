@@ -13,8 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: wucke13
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - run: nix flake check
   build-package:
     name: ${{ matrix.PACKAGE }} for ${{ matrix.SYSTEM }}
@@ -63,8 +66,11 @@ jobs:
         with:
           tool-cache: true
       - uses: actions/checkout@v6
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: wucke13
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - run: |
           # shellcheck disable=SC2086
           nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.NIXOS_CONFIGURATION }}.config.system.build.toplevel
