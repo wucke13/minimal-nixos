@@ -1,0 +1,92 @@
+diff --git a/.github/workflows/meta.yaml b/.github/workflows/meta.yaml
+index 8531ebcf68..c294eeb00b 100644
+--- a/.github/workflows/meta.yaml
++++ b/.github/workflows/meta.yaml
+@@ -15,8 +15,11 @@
+         with:
+           # checkout full tree
+           fetch-depth: 0
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+       - name: Checking each commit to be merged for conformance
+         run: nix run .#check-commits -- nix run nixpkgs#conform enforce
+   check-workflow-packages:
+@@ -27,8 +30,11 @@
+         with:
+           # checkout full tree
+           fetch-depth: 0
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+       - name: Checking each commit to have its derivations covered by CI
+         run: nix run .#check-commits -- nix run .#update-ci -- --check
+   check-fmt:
+@@ -39,8 +45,11 @@
+         with:
+           # checkout full tree
+           fetch-depth: 0
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+       - name: Checking each commit to be properly formatted
+         run: nix run .#check-commits -- nix fmt -- --ci
+   check-licenses:
+@@ -51,8 +60,11 @@
+         with:
+           # checkout full tree
+           fetch-depth: 0
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+       - name: Checking each commit to be merged for proper declaration of licenses
+         run: >
+           nix shell .#check-commits nixpkgs#reuse --command
+diff --git a/.github/workflows/nix.yaml b/.github/workflows/nix.yaml
+index 90568056a9..9ee290645d 100644
+--- a/.github/workflows/nix.yaml
++++ b/.github/workflows/nix.yaml
+@@ -13,8 +13,11 @@
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v6
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+       - run: nix flake check
+   build-package:
+     name: ${{ matrix.PACKAGE }} for ${{ matrix.SYSTEM }}
+@@ -63,8 +66,11 @@
+         with:
+           tool-cache: true
+       - uses: actions/checkout@v6
+-      - uses: DeterminateSystems/nix-installer-action@main
+-      - uses: DeterminateSystems/magic-nix-cache-action@main
++      - uses: cachix/install-nix-action@v31
++      - uses: cachix/cachix-action@v16
++        with:
++          name: wucke13
++          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+       - run: |
+           # shellcheck disable=SC2086
+           nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.NIXOS_CONFIGURATION }}.config.system.build.toplevel

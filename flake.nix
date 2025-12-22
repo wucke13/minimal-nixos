@@ -89,6 +89,73 @@
         checks = {
           formatting = treefmtEval.config.build.check self;
         };
+
+        # for hydra based CI
+        hydraJobs =
+          (
+            let
+              inherit (builtins) listToAttrs;
+              inherit (lib.attrsets) getAttr mapCartesianProduct;
+
+              kernel = [
+                "linux_latest"
+                "linux_6_18"
+                "linux_6_12"
+                "linux_6_6"
+                "linux_6_1"
+                "linux_5_15"
+                "linux_5_10"
+              ];
+
+              crossSystem = [
+                "x86_64-linux"
+                "i686-linux"
+                "aarch64-linux"
+                "armv7a-linux"
+              ];
+            in
+            listToAttrs (
+              mapCartesianProduct
+                (
+                  { kernel, crossSystem }:
+                  let
+                    p = import nixpkgs {
+                      inherit system;
+                      crossSystem.config = crossSystem;
+                    };
+                    baseKernel = getAttr kernel p;
+                  in
+                  {
+                    name = "minimal-linux-kernel-${p.stdenv.hostPlatform.linuxArch}-${baseKernel.version}";
+                    value = p.callPackage ./pkgs/minimal-linux-kernel.nix { inherit baseKernel; };
+                  }
+                )
+                {
+                  inherit kernel crossSystem;
+                }
+            )
+          )
+          // (
+            let
+              derivationProduct = lib.attrsets.cartesianProduct {
+                configName = lib.attrsets.attrNames self.nixosConfigurations;
+                output = [
+                  "gdbLauncher"
+                  "kernel"
+                  "standaloneRamdisk"
+                  "standaloneRamdiskVm"
+                  "toplevel"
+                ];
+              };
+            in
+            lib.attrsets.genAttrs' derivationProduct (
+              { configName, output }:
+              {
+                name = "${configName}-${output}";
+                value = self.nixosConfigurations.${configName}.config.system.build.${output};
+              }
+            )
+          );
       }
     ));
 }
