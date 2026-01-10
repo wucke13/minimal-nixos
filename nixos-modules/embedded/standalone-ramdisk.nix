@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 wucke13
+# SPDX-FileCopyrightText: 2025-2026 wucke13
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -218,6 +218,9 @@ in
       compile time
     */
     system.build.standaloneRamdiskVm = pkgs.pkgsBuildBuild.writeShellApplication {
+      # `writeShellApplication` leaks the `hostPlatform` `shellcheck` into the derivation, causing a
+      # cross compilation of a Haskell toolchain. So we disable the `checkPhase` if cross compiling.
+      checkPhase = if pkgs.stdenv.buildPlatform == pkgs.stdenv.hostPlatform then null else "";
       name = "run-${config.system.name}-vm";
       text = ''
         # QEMU leaves the terminal in an unclean state upon exit.
