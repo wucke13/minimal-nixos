@@ -32,6 +32,8 @@ jobs:
         # nix run .#update-ci
         PACKAGE:
           - check-commits
+          - dtb-edit
+          - elf-to-sloc
           - minimal-linux-kernel
           - update-ci
     steps:
