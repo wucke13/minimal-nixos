@@ -230,11 +230,16 @@ in
         echo 'launching QEMU'
         ${qemuCmd} \
           -m size=1G \
-          -kernel ${config.system.build.toplevel}/kernel \
-          -initrd ${config.system.build.standaloneRamdisk}/initrd \
-          -netdev user,id=n1 -device virtio-net-pci,netdev=n1 \
-          -nographic \
-          "''${@}"
+      ''
+      + lib.strings.optionalString (
+        (config.nixpkgs.hostPlatform.gcc.cpu or null) == "e6500"
+      ) "-machine ppce500 -cpu e6500 \\"
+      + ''
+        -kernel ${config.system.build.toplevel}/kernel \
+        -initrd ${config.system.build.standaloneRamdisk}/initrd \
+        -netdev user,id=n1 -device virtio-net-pci,netdev=n1 \
+        -nographic \
+        "''${@}"
       '';
     };
   };
