@@ -32,6 +32,8 @@ jobs:
         # nix run .#update-ci
         PACKAGE:
           - check-commits
+          - dtb-edit
+          - elf-to-sloc
           - minimal-linux-kernel
           - update-ci
     steps:
@@ -58,6 +60,7 @@ jobs:
           - minimal
           - minimal-cross-x86_64-aarch64
           - minimal-cross-x86_64-armv7l
+          - minimal-cross-x86_64-powerpc64-e6500
     steps:
       # The default image contains dozens of gigabytes of tools. NixOS config builds get big. Thus,
       # remove unused tools (Nix provides for all we need!) to get some space.

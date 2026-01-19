@@ -45,7 +45,7 @@
         ) (lib.zornlib.nixFilesToAttrset ./nixos-configurations)
       );
     }
-    // (inputs.flake-utils.lib.eachDefaultSystem (
+    // (inputs.flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (
       system:
       let
         # nixpkgs instance for the current sytem with our overlay applied

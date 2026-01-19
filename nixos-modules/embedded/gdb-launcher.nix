@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 wucke13
+# SPDX-FileCopyrightText: 2025-2026 wucke13
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -39,8 +39,14 @@ in
       - breakpoint on `start_kernel` chew through the boring bootstrapping assembly
       - to debug init, use `run_init_process` or `kernel_execve` as breakpoint
       - use `apropos lx` to get an overview over functions and commands from these scripts
+      - to reset the VM, in the QEMU terminal press [CTRL] + [A] then [C] and enter `system_reset`
+      - to stop the VM, in the QEMU terminal press [CTRL] + [A] then [X]
+      - read https://qemu-project.gitlab.io/qemu/system/gdb.html
     */
     system.build.gdbLauncher = pkgs.buildPackages.writeShellApplication {
+      # `writeShellApplication` leaks the `hostPlatform` `shellcheck` into the derivation, causing a
+      # cross compilation of a Haskell toolchain. So we disable the `checkPhase` if cross compiling.
+      checkPhase = if pkgs.stdenv.buildPlatform == pkgs.stdenv.hostPlatform then null else "";
       name = "run-${config.system.name}-gdb";
       text =
         let
@@ -85,16 +91,41 @@ in
               add-auto-load-safe-path ${kernelBuiltWithGdb}
               directory ${kernelBuiltWithGdb}/build
               source ${kernelBuiltWithGdb}/build/vmlinux-gdb.py
-              target remote :1234
             '';
           };
         in
         ''
+          SOCKET_FILE=$(mktemp --dry-run --suffix .qemu-gdb.sock)
+          QEMU_COMMAND=(
+            ${lib.meta.getExe config.system.build.standaloneRamdiskVm}
+            '-chardev'
+            "socket,path=$SOCKET_FILE,server=on,wait=off,id=gdb0"
+            '-gdb' 'chardev:gdb0'
+            '-S'
+          )
+          echo -e "Trying to run\n\e[1m''${QEMU_COMMAND[*]}\e[0m"
+          if xdg-terminal-exec "''${QEMU_COMMAND[@]}" "''${@}" &
+          then
+            true
+          else
+            echo 'That failed, please run the aforementioned command to continue'
+          fi
+
+          until [[ -S "$SOCKET_FILE" ]]
+          do
+            sleep 0.1
+          done
+        ''
+        # TODO this is still racy, the existence of the socket file does not necessarily indicate
+        # that QEMU is ready to talk GDB protocol over said socket file
+        + ''
           gdb --command=${gdbRcInit} \
+            --eval-command="target remote $SOCKET_FILE" \
             --eval-command='tui layout regs' \
             --eval-command='focus cmd' \
             --eval-command='hbreak start_kernel' \
             --tui \
+            --quiet \
             --cd=${kernelBuiltWithGdb}/build \
             ${config.system.build.kernel.dev}/vmlinux \
             "''${@}"
