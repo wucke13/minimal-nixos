@@ -233,7 +233,7 @@ in
       ''
       + lib.strings.optionalString (
         (config.nixpkgs.hostPlatform.gcc.cpu or null) == "e6500"
-      ) "-machine ppce500 -cpu e6500 \\"
+      ) "-machine ppce500 -cpu e6500 -append console=ttyS0 \\"
       + ''
         -kernel ${config.system.build.toplevel}/kernel \
         -initrd ${config.system.build.standaloneRamdisk}/initrd \
