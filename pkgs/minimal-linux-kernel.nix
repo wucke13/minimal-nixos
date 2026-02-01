@@ -171,8 +171,8 @@ let
 
       # IO
       PRINTK = yes;
-      SERIAL_8250 = mkIf hpl.isx86;
-      SERIAL_8250_CONSOLE = mkIf hpl.isx86;
+      SERIAL_8250 = mkIf (hpl.isPower || hpl.isx86);
+      SERIAL_8250_CONSOLE = mkIf (hpl.isPower || hpl.isx86);
       SERIAL_AMBA_PL011 = mkIf hpl.isAarch;
       SERIAL_AMBA_PL011_CONSOLE = mkIf hpl.isAarch;
       TTY = yes;
