@@ -4,7 +4,6 @@
 
 {
   writeShellApplication,
-  coreutils-full,
   gawk,
   llvmPackages,
 }:
@@ -12,7 +11,6 @@
 writeShellApplication {
   name = "elf-to-sloc";
   runtimeInputs = [
-    coreutils-full
     gawk
     llvmPackages.llvm
   ];

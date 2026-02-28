@@ -42,9 +42,10 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - id: supported-system
         name: Skip unsupported builds
-        run: eval nix eval --json .#packages.${{ matrix.SYSTEM }}.${{
-          matrix.PACKAGE }}.meta.available
-      - if: steps.supported-system.conclusion == 'success'
+        continue-on-error: true
+        run: |
+          nix eval --json --impure .#packages.${{ matrix.SYSTEM }}.${{ matrix.PACKAGE }} --apply '{system, ...}: if system == builtins.currentSystem then null else abort "incompatible build OS"'
+      - if: steps.supported-system.outcome == 'success'
         run: |
           # shellcheck disable=SC2086
           nix build $EXTRA_NIX_FLAGS .#packages.${{ matrix.SYSTEM }}.${{ matrix.PACKAGE }}
@@ -74,6 +75,12 @@ jobs:
         with:
           name: wucke13
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - run: |
+      - id: supported-system
+        name: Skip unsupported builds
+        continue-on-error: true
+        run: |
+          nix eval --json --impure .#nixosConfigurations.${{ matrix.NIXOS_CONFIGURATION }}.config.system.build.toplevel --apply '{system, ...}: if system == builtins.currentSystem then null else abort "incompatible build OS"'
+      - if: steps.supported-system.outcome == 'success'
+        run: |
           # shellcheck disable=SC2086
           nix build $EXTRA_NIX_FLAGS .#nixosConfigurations.${{ matrix.NIXOS_CONFIGURATION }}.config.system.build.toplevel
