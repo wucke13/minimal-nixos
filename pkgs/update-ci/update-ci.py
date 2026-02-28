@@ -163,8 +163,8 @@ for key in known_ci_files:
         subprocess.run(
             [
                 "git",
-                "diff",
                 "--no-pager",
+                "diff",
                 f"--line-prefix={print_indentation}",
                 file_path,
             ],
