@@ -142,7 +142,15 @@ change_detected = False
 
 for key in known_ci_files:
     file_path = Path(key)
+
+    # The git diff command below will yield an empty diff if the `file_path` is a symlink pointing
+    # to a file which was actually changed. Therefore resolve `file_path` if indeed is a symlink.
+    if file_path.is_symlink():
+        log(f"{file_path} is a symlink, resolving it")
+        file_path = Path(os.path.realpath(file_path))
+
     if not file_path.is_file():
+        log(f"{file_path} is not a file, skipping it")
         continue
     log(f"processing {file_path}")
 
@@ -158,18 +166,20 @@ for key in known_ci_files:
     )
 
     if vars(args)["check"] and hash_before != sha256sum(file_path):
+        log("check mode is enabled and file change was detected:")
         change_detected = True
-        # If something changed, show the diff
-        subprocess.run(
-            [
-                "git",
-                "--no-pager",
-                "diff",
-                f"--line-prefix={print_indentation}",
-                file_path,
-            ],
-            check=False,
-        )
+
+if change_detected:
+    # If something changed, show the diff of all changes
+    subprocess.run(
+        [
+            "git",
+            "--no-pager",
+            "diff",
+            f"--line-prefix={print_indentation}",
+        ],
+        check=False,
+    )
 
 if change_detected:
     exit(1)
