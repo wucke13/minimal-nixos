@@ -142,6 +142,12 @@ change_detected = False
 
 for key in known_ci_files:
     file_path = Path(key)
+
+    # The git diff command below will yield an empty diff if the `file_path` is a symlink pointing
+    # to a file which was actually changed. Therefore resolve `file_path` if indeed is a symlink.
+    if file_path.is_symlink():
+        file_path = os.path.realpath(file_path)
+
     if not file_path.is_file():
         continue
     log(f"processing {file_path}")
