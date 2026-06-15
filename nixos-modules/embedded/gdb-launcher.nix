@@ -139,6 +139,7 @@ in
         patch = null;
         structuredExtraConfig = with lib.kernel; {
           DEBUG_INFO = yes; # make sure debug info is in vmlinux
+          # TODO alternatively offer DEBUG_INFO_REDUCED ?
           DEBUG_INFO_DWARF5 = yes; # make sure that the more efficient DWARF5 format is used
           GDB_SCRIPTS = yes; # emit the gdb launcher scripts from the kernel
           UNWINDER_ARM = mkIf hpl.isArmv7;

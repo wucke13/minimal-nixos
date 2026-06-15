@@ -23,7 +23,8 @@ let
   cfg = config.zorn.boot.standaloneInitramdisk;
 
   qemu-common = import (pkgs.path + "/nixos/lib/qemu-common.nix") {
-    inherit lib pkgs;
+    inherit (pkgs) stdenv;
+    inherit lib;
   };
 
   /*
@@ -215,7 +216,16 @@ in
       A primitive QEMU runner
 
       Intentionally impure (requiring `qemu-system-*` binaries to be already on the `$PATH`) to save
-      compile time
+      compile time, if `useTailoredQemu == false`.
+
+      To add a userspace SLIRP backed network interface with host-to-guest forwarding, append the
+      following flags to the QEMU command:
+
+          -nic user,model=virtio-net-pci,id=mynet0,hostfwd=tcp::2222-:22
+
+      Then you can ssh into the machine via
+
+          ssh -o={PubkeyAuthentication,StrictHostKeyChecking}=no -o=UserKnownHostsFile=/dev/null -p 2222 root@127.0.0.1
     */
     system.build.standaloneRamdiskVm = pkgs.pkgsBuildBuild.writeShellApplication {
       # `writeShellApplication` leaks the `hostPlatform` `shellcheck` into the derivation, causing a
