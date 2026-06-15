@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 
-# SPDX-FileCopyrightText: 2025 wucke13
+# SPDX-FileCopyrightText: 2025-2026 wucke13
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -22,5 +22,5 @@ cp --recursive --verbose -- \
   ./nixos-modules/
 
 cp --recursive --verbose -- \
-  "$ZORNIX_HOME"pkgs/{check-commits.nix,dtb-edit.nix,elf-to-sloc,minimal-linux-kernel.nix,update-ci} \
+  "$ZORNIX_HOME"pkgs/{check-commits.nix,dtb-edit.nix,elf-to-sloc,minimal-linux-kernel.nix} \
   ./pkgs/
