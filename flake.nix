@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024-2025 wucke13
+# SPDX-FileCopyrightText: 2024-2026 wucke13
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -21,7 +21,6 @@
       lib = import ./lib.nix nixpkgs.lib;
     in
     {
-      homeConfigurations = { };
       nixosModules.default = import ./nixos-modules;
       overlays.default = import ./overlay.nix;
 
@@ -44,6 +43,20 @@
           }
         ) (lib.zornlib.nixFilesToAttrset ./nixos-configurations)
       );
+
+      # for CI
+      ciJobs = {
+        checks = lib.recurseIntoAttrs (self.checks or { });
+        homeConfigurations = lib.attrsets.recurseIntoAttrs (
+          lib.attrsets.mapAttrs (name: value: value.activationPackage) (self.homeConfigurations or { })
+        );
+        nixosConfigurations = lib.attrsets.recurseIntoAttrs (
+          lib.attrsets.mapAttrs (name: value: value.config.system.build.toplevel) (
+            self.nixosConfigurations or { }
+          )
+        );
+        packages = lib.attrsets.recurseIntoAttrs (self.packages or { });
+      };
     }
     // (inputs.flake-utils.lib.eachSystem [ "aarch64-linux" "x86_64-linux" ] (
       system:
