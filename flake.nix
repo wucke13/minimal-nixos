@@ -46,7 +46,7 @@
 
       # for CI
       ciJobs = {
-        checks = lib.recurseIntoAttrs (self.checks or { });
+        checks = lib.attrsets.recurseIntoAttrs (self.checks or { });
         homeConfigurations = lib.attrsets.recurseIntoAttrs (
           lib.attrsets.mapAttrs (name: value: value.activationPackage) (self.homeConfigurations or { })
         );
