@@ -123,12 +123,35 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Fake the `init=/nix/store/*/init` argument to the tolevel closure in the kernel cmdline
+    # Fake the `init=/nix/store/*/init` argument to the toplevel closure in the kernel cmdline
     boot.initrd.systemd.services = lib.attrsets.genAttrs nixosInitServices (serviceName: {
       serviceConfig.BindReadOnlyPaths = "${fakeProcCmdline}:/proc/cmdline";
     });
     boot.initrd.systemd.storePaths = [ fakeProcCmdline ];
     system.nixos-init.enable = true; # faking via /proc/cmdline only works with `nixos-init`
+    /*
+      Some bootspec default values (namely `kernel` and `kernelParams`) are not automatically
+      set when `boot.kernel.enable == false`. Unfortunately, that makes the `boot.json` not parse
+      as instance of <https://docs.rs/bootspec/latest/bootspec/v1/struct.BootSpecV1.html>. As
+      consequence, all of the `nixos-init` executables fail.
+
+      This package adds a small patch to inject default values for the parameters in question, fix
+      the issue. This is inaccurate; in particular the bootspec does now not accurately reflect the
+      kernel cmdline (aka `kernelParams`).
+
+      Why patch `nixos-init`? The `boot.json` is generated directly in the `toplevel` derivation,
+      and the generation logic is fairly complex. While user supplied additions are supported, they
+      can not override the `org.nixos.bootspec.v1` key. Thus I concluded that, albeit giving up some
+      global consistency, patching the relevant programs reading the `boot.json` is simpler and more
+      robust than patching the `boot.json` itself.
+    */
+    system.nixos-init.package = lib.mkForce pkgs.nixos-init-no-kernel; # we need to inject bootspec defaults
+
+    /*
+      This is an NixOS internal information about the system, closing in kernel and
+      bootloader, and `nixos-init` needs it to work.
+    */
+    boot.bootspec.enable = true;
 
     /*
       The standalone ramdisk contains a squashfs with the system's
@@ -184,12 +207,6 @@ in
     boot.initrd.availableKernelModules = [ "squashfs" ];
 
     boot.initrd.kernelModules = [ "loop" ];
-
-    /*
-      This is an NixOS internal information about the system, closing in kernel and
-      bootloader --- but we don't need it in the initrd.
-    */
-    boot.bootspec.enable = false;
 
     # Create the initrd
     system.build.standaloneRamdisk = pkgs.buildPackages.makeInitrdNG {
