@@ -71,7 +71,18 @@
       in
       {
         # generate local packages + goodies
-        packages = pkgs.zornpkgs;
+        packages = pkgs.zornpkgs // {
+          allwinner-h3-fw =
+            let
+              nixosConfig = self.nixosConfigurations.minimal-cross-x86_64-armv7l-allwinner-h3.extendModules {
+                modules = [ { nixpkgs.buildPlatform = lib.mkForce system; } ];
+              };
+            in
+            pkgs.zornpkgs.allwinner-h3-fw.override {
+              inherit (nixosConfig.config.system.build) kernel;
+              initrd = nixosConfig.config.system.build.standaloneRamdisk;
+            };
+        };
 
         # generate deploy-scripts
         apps = {

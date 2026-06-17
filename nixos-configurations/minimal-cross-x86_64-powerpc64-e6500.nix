@@ -2,14 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-{ config, lib, ... }:
+{ config, ... }:
 
 {
 
   imports = [ ./minimal.nix ];
 
   config = {
-    nixpkgs.buildPlatform = lib.mkForce "x86_64-linux";
+    nixpkgs.buildPlatform = "x86_64-linux";
     nixpkgs.hostPlatform = {
       system = "powerpc64-unknown-linux-gnuabielfv1"; # Rust only supports ELFv1 out of the box
       gcc.cpu = "e6500";
