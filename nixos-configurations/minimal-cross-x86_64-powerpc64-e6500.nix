@@ -2,19 +2,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-{ config, lib, ... }:
+{ config, ... }:
 
 {
 
   imports = [ ./minimal.nix ];
 
   config = {
-    nixpkgs.buildPlatform = lib.mkForce "x86_64-linux";
+    nixpkgs.buildPlatform = "x86_64-linux";
     nixpkgs.hostPlatform = {
-      system = "powerpc64-unknown-linux-gnuabielfv1";
+      system = "powerpc64-unknown-linux-gnuabielfv1"; # Rust only supports ELFv1 out of the box
       gcc.cpu = "e6500";
       linux-kernel.name = "powerpc64";
-      rust.rustcTarget = "powerpc64-unknown-linux-gnu"; # rust only supports elfv1
+      rust.rustcTarget = "powerpc64-unknown-linux-gnu";
 
       # See https://www.kernel.org/doc/html/v5.4/powerpc/bootwrapper.html
       linux-kernel.target = "zImage";

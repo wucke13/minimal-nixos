@@ -26,7 +26,7 @@
     );
 
     zorn.boot.kernelDebugging.enable = true; # enable gdb launcher script generation
-    zorn.boot.kernelDebugging.enableKernelDebugConfigOptions = true; # compile kernel with debugging aids
+    # zorn.boot.kernelDebugging.enableKernelDebugConfigOptions = true; # compile kernel with debugging aids
     zorn.boot.standaloneInitramdisk.enable = true; # enable creation of a standalone initramdisk
     # zorn.boot.standaloneInitramdisk.useTailoredQemu = false; # use this to avoid compiling QEMU
     zorn.debloat.enable = true;
@@ -34,42 +34,44 @@
     # avoid any software installed by default
     # TODO filter this via nixos/modules/config/system-path.nix
     # See https://github.com/NixOS/nixpkgs/issues/32405 for further info
-    environment.systemPackages = lib.mkForce [
-      # essentials
-      pkgs.bashInteractive # required, it is the default login shell and in the system closure anyhow
-      pkgs.coreutils
-      pkgs.systemd
+    environment.systemPackages = lib.mkForce (
+      [
+        # essentials
+        pkgs.bashInteractive # required, it is the default login shell and in the system closure anyhow
+        pkgs.coreutils
+        pkgs.systemd
 
-      # goodies already included in the system closure
-      pkgs.acl
-      pkgs.attr
-      pkgs.bzip2
-      pkgs.cpio
-      pkgs.dbus
-      pkgs.dosfstools
-      pkgs.findutils
-      pkgs.fuse
-      pkgs.getent
-      pkgs.gnugrep
-      pkgs.gnused
-      pkgs.gzip
-      pkgs.kexec-tools
-      pkgs.kmod
-      pkgs.libcap
-      pkgs.ncurses
-      pkgs.nettools
-      pkgs.shadow
-      pkgs.su
-      pkgs.util-linux
-      pkgs.xz
-      pkgs.zstd
+        # goodies already included in the system closure
+        pkgs.acl
+        pkgs.attr
+        pkgs.bzip2
+        pkgs.cpio
+        pkgs.dbus
+        pkgs.dosfstools
+        pkgs.findutils
+        pkgs.fuse
+        pkgs.getent
+        pkgs.gnugrep
+        pkgs.gnused
+        pkgs.gzip
+        pkgs.kmod
+        pkgs.libcap
+        pkgs.ncurses
+        pkgs.nettools
+        pkgs.shadow
+        pkgs.su
+        pkgs.util-linux
+        pkgs.xz
+        pkgs.zstd
 
-      # debugging aids
-      # pkgs.iproute2
-      # pkgs.netcat
-      # pkgs.socat
-      # pkgs.strace
-    ];
+        # debugging aids
+        # pkgs.iproute2
+        # pkgs.netcat
+        # pkgs.socat
+        # pkgs.strace
+      ]
+      ++ lib.lists.optional (lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.kexec-tools) pkgs.kexec-tools
+    );
 
     # use this to add packages to the early boot stage
     boot.initrd.systemd.initrdBin = [ ];

@@ -21,6 +21,9 @@ let
   */
   mkZornDefault = lib.mkOverride 750;
 
+  # Like stronger than a default (priority 100) assignment, but weaker than `lib.mkForce`.
+  mkZornForce = lib.mkOverride 75;
+
   inherit (lib.attrsets) optionalAttrs;
   inherit (lib.lists) optionals;
 in
@@ -192,18 +195,22 @@ in
     boot.bcache.enable = mkZornDefault false;
     boot.swraid.enable = mkZornDefault false;
     boot.initrd.supportedFilesystems = {
-      cifs = mkZornDefault false;
-      bcachefs = mkZornDefault false;
-      btrfs = mkZornDefault false;
-      xfs = mkZornDefault false;
-      zfs = mkZornDefault false;
+      bcachefs = mkZornForce false;
+      btrfs = mkZornForce false;
+      cifs = mkZornForce false;
+      f2fs = mkZornForce false;
+      ntfs = mkZornForce false;
+      xfs = mkZornForce false;
+      zfs = mkZornForce false;
     };
     boot.supportedFilesystems = {
-      cifs = mkZornDefault false;
-      bcachefs = mkZornDefault false;
-      btrfs = mkZornDefault false;
-      xfs = mkZornDefault false;
-      zfs = mkZornDefault false;
+      bcachefs = mkZornForce false;
+      btrfs = mkZornForce false;
+      cifs = mkZornForce false;
+      f2fs = mkZornForce false;
+      ntfs = mkZornForce false;
+      xfs = mkZornForce false;
+      zfs = mkZornForce false;
     };
   };
 }
