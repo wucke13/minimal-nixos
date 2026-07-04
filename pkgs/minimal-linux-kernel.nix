@@ -7,7 +7,7 @@
   stdenv,
   buildLinux,
   baseKernel ? linux_latest,
-  linux_latest ? builtins.throw "`linux_latest` must be passed if `kernelSrc` is not passed!",
+  linux_latest ? throw "`linux_latest` must be passed if `kernelSrc` is not passed!",
   kernelSrc ? null,
   kernelVersion ? null,
   ...
@@ -28,42 +28,21 @@ let
 
   # Make this derivation behave like if it was just a call to `buildLinux { ... }`, by passing
   # through any arguments to it (like `features`, `randomstructSeed` or `kernelPatches` for example)
-  passthroughArgs =
-    removeAttrs args [
-      "buildLinux"
-      "baseKernel"
-      "linux_latest"
-      "kernelSrc"
-      "kernelVersion"
-    ]
-    // {
-      /*
-        `pkgs/os-specific/linux/kernel/generic.nix` unconditionally adds defaults from
-        `lib/systems/platforms.nix`, in particular `stdenv.hostPlatform.linux-kernel.extraConfig`,
-        to `extraConfig`. That is particularly bad, as there is no easy way to get rid of it.
-
-        Upstream PR: https://github.com/NixOS/nixpkgs/pull/413059
-      */
-      stdenv =
-        let
-          removeByPath =
-            pathList: set:
-            lib.updateManyAttrsByPath [
-              {
-                path = lib.init pathList;
-                update = old: lib.filterAttrs (n: v: n != (lib.last pathList)) old;
-              }
-            ] set;
-        in
-        removeByPath [ "hostPlatform" "linux-kernel" "extraConfig" ] stdenv;
-    };
+  passthroughArgs = removeAttrs args [
+    "buildLinux"
+    "baseKernel"
+    "linux_latest"
+    "kernelSrc"
+    "kernelVersion"
+  ];
 
   # arguments to the `buildlinux` function defined in `pkgs/os-specific/linux/kernel/generic.nix`
   buildLinuxArgs = with (lib.kernel.whenHelpers version); {
     inherit src version;
     autoModules = false;
     kernelPreferBuiltin = true;
-    enableCommonConfig = false; # only use our structuredExtraConfig
+    # only use our `structuredExtraConfig`, don't inject stuff from `hostPlatform.linux-kernel.extraConfig`
+    enableCommonConfig = false;
     defconfig = "tinyconfig";
 
     /*

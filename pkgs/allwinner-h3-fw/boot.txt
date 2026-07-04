@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2025 wucke13
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Avoid the following error caused by memory fragmentation with the default initrd relocation
+# behavior of uboot
+# ERROR: Failed to allocate 0x605a4b1 bytes below 0x4a000000.
+setenv initrd_high 0x60000000
+
+# Move the fdt and ramdisk addresses further up to allow for larger kernel images
+setenv fdt_addr_r 0x48000000
+setenv ramdisk_addr_r 0x48040000
+
+# Commenting this in makes the boot faster by avoiding a lot of synchronous, slow, serial writing
+#setenv bootargs 'loglevel=5 systemd.log_level=warning systemd.show_status=auto'
+
+
+# Try sd boot
+fatload mmc 0:1 $loadaddr zImage
+fatload mmc 0:1 $fdt_addr_r dtbs/$fdtfile
+fatload mmc 0:1 $ramdisk_addr_r uInitrd
+bootz $loadaddr $ramdisk_addr_r $fdt_addr_r
+
+
+# Try network boot
+tftpboot $loadaddr zImage
+tftpboot $fdt_addr_r dtbs/$fdtfile
+tftpboot $ramdisk_addr_r uInitrd
+bootz $loadaddr $ramdisk_addr_r $fdt_addr_r

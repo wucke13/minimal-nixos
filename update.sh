@@ -22,5 +22,5 @@ cp --recursive --verbose -- \
   ./nixos-modules/
 
 cp --recursive --verbose -- \
-  "$ZORNIX_HOME"pkgs/{check-commits.nix,dtb-edit.nix,elf-to-sloc,minimal-linux-kernel.nix} \
+  "$ZORNIX_HOME"pkgs/{allwinner-h3-fw,check-commits.nix,dtb-edit.nix,elf-to-sloc,minimal-linux-kernel.nix} \
   ./pkgs/
