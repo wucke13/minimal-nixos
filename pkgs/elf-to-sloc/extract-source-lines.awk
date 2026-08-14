@@ -16,7 +16,7 @@ BEGIN {
   # count how often this line occured
   observed_lines[$2 $3]++;
   # print filename:line number to stdout
-  print $2 $3;
+  print $2 ":" $3;
 }
 
 END{
