@@ -104,10 +104,8 @@ in
             '-S'
           )
           echo -e "Trying to run\n\e[1m''${QEMU_COMMAND[*]}\e[0m"
-          if xdg-terminal-exec "''${QEMU_COMMAND[@]}" "''${@}" &
+          if ! setsid -- xdg-terminal-exec "''${QEMU_COMMAND[@]}" "''${@}" &
           then
-            true
-          else
             echo 'That failed, please run the aforementioned command to continue'
           fi
 
